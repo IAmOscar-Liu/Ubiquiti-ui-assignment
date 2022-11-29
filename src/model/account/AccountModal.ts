@@ -14,6 +14,15 @@ export class AccountModal implements AccountInterface {
     return (rows as AccountType[])[0] || null;
   }
 
+  async findUserById(id: number) {
+    const [rows] = await pool.execute(
+      `SELECT id, name, email FROM Account WHERE id = ?`,
+      [id + ""]
+    );
+
+    return (rows as AccountType[])[0] || null;
+  }
+
   async addUser(name: string, hashedPassword: string, email: string) {
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();

@@ -21,6 +21,7 @@ app.post("/api/refresh_token", handleRefreshToken);
 app.post("/api/auth/login", AccountController.instance.login);
 app.post("/api/auth/register", AccountController.instance.register);
 app.post("/api/auth/logout", AccountController.instance.logout);
+app.post("/api/auth/me", AccountController.instance.me);
 
 // task
 app.get("/api/tasks", TaskController.instance.getAllTasks);
@@ -34,7 +35,7 @@ app.post("/api/subtask", isAuth, TaskController.instance.addSubTask);
 app.put("/api/subtask", isAuth, TaskController.instance.updateSubTask);
 app.delete("/api/subtask", isAuth, TaskController.instance.deleteSubTask);
 
-// Food
+// food
 app.get("/api/foods", FoodController.instance.getAllFoods);
 app.get("/api/food/:id", FoodController.instance.getFood);
 app.post("/api/food", isAuth, FoodController.instance.addFood);

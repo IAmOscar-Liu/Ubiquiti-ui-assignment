@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
+import { getAccessTokenFromAuth } from "../../utils/getAccessTokenFromAuth";
 import { AccountModal } from "../../model/account/AccountModal";
 import { createTokens } from "../../utils/createTokens";
 import { sendRefreshToken } from "../../utils/sendRefreshToken";
@@ -73,5 +74,24 @@ export class AccountController implements AccountControllerInterface {
     res.clearCookie("todoapp_refresh_token");
 
     return res.json({ ok: true });
+  }
+
+  async me(req: Request, res: Response) {
+    try {
+      const { account_id, access_token } = getAccessTokenFromAuth(
+        req.headers["authorization"]
+      );
+
+      if (account_id === undefined || access_token === undefined)
+        return res.json({});
+
+      const account = await AccountModal.instance.findUserById(account_id);
+
+      if (!account) return res.json({});
+
+      return res.json({ account, access_token });
+    } catch (error) {
+      return {};
+    }
   }
 }
