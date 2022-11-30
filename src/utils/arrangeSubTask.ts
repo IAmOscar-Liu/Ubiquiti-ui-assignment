@@ -11,9 +11,9 @@ export const arrangeSubTask = (subTasks: SubTask[]) => {
 
   for (let nest of nests) {
     const paths = nest.subTaskPath
-      .split(" -> ")
+      .split("->")
       .slice(1)
-      .map((p) => p.match(/[0-9]+/)?.[0])
+      .map((p) => p.trim().match(/[0-9]+/)?.[0])
       .map((p) => Number(p));
     if (paths.find((p) => !p)) continue;
 

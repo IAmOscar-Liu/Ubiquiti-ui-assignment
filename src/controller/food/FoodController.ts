@@ -44,6 +44,7 @@ export class FoodController implements FoodControllerInterface {
 
       return res.json({ ok: true, id: task_id });
     } catch (error) {
+      console.log("error: ", error);
       return res.status(500).json({ ok: false, errMessage: error.message });
     }
   }
