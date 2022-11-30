@@ -11,17 +11,22 @@ export class TaskModal implements TaskInterface {
   async findAllTasks() {
     const [rows] = await pool.query(
       `
-        SELECT
-            id,
-            name,
-            description,
-            price,
-            completed,
-            deadline,
-            createdBy,
-            createdAt,
-            updateAt
-        FROM Task;
+        SELECT 
+            t.id,
+            t.name,
+            t.description,
+            t.price,
+            t.completed,
+            t.deadline,
+            t.createdBy,
+            t.createdAt,
+            t.updateAt,
+            a.name AS createdByUsername
+        FROM
+            Task AS t
+                JOIN
+            Account AS a ON t.createdBy = a.id
+        ORDER BY t.id DESC
       `
     );
 
@@ -43,18 +48,22 @@ export class TaskModal implements TaskInterface {
   async findTaskById(id: number) {
     const [rows] = await pool.execute(
       `
-        SELECT
-            id,
-            name,
-            description,
-            price,
-            completed,
-            deadline,
-            createdBy,
-            createdAt,
-            updateAt
-        FROM Task
-        WHERE id = ?    
+        SELECT 
+            t.id,
+            t.name,
+            t.description,
+            t.price,
+            t.completed,
+            t.deadline,
+            t.createdBy,
+            t.createdAt,
+            t.updateAt,
+            a.name AS createdByUsername
+        FROM
+            Task AS t
+                JOIN
+            Account AS a ON t.createdBy = a.id
+        WHERE t.id = ?  
     `,
       [id + ""]
     );

@@ -9,17 +9,22 @@ export class FoodModal implements FoodInterface {
   async findAllFoods() {
     const [rows] = await pool.query(
       `
-        SELECT
-            id,
-            name,
-            carbs,
-            fats,
-            protein,
-            img,
-            createdBy,
-            createdAt,
-            updateAt
-        FROM Food;
+        SELECT 
+            f.id,
+            f.name,
+            f.carbs,
+            f.fats,
+            f.protein,
+            f.img,
+            f.createdBy,
+            f.createdAt,
+            f.updateAt,
+            a.name AS createdByUsername
+        FROM
+            Food AS f
+                JOIN
+            Account AS a ON f.createdBy = a.id
+        ORDER BY f.id DESC  
       `
     );
 
@@ -29,18 +34,22 @@ export class FoodModal implements FoodInterface {
   async findFoodById(id: number) {
     const [rows] = await pool.execute(
       `
-        SELECT
-            id,
-            name,
-            carbs,
-            fats,
-            protein,
-            img,
-            createdBy,
-            createdAt,
-            updateAt
-        FROM Food
-        WHERE id = ?    
+        SELECT 
+            f.id,
+            f.name,
+            f.carbs,
+            f.fats,
+            f.protein,
+            f.img,
+            f.createdBy,
+            f.createdAt,
+            f.updateAt,
+            a.name AS createdByUsername
+        FROM
+            Food AS f
+                JOIN
+            Account AS a ON f.createdBy = a.id
+        WHERE f.id = ?
     `,
       [id + ""]
     );

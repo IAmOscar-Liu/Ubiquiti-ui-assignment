@@ -9,6 +9,7 @@ export const modifyTask = (task: any): Task => {
     completed: !!task.completed,
     deadline: Number(task.deadline),
     createdBy: Number(task.createdBy),
+    createdByUsername: task.createdByUsername,
     createdAt: task.createdAt,
     updateAt: task.updateAt,
   };

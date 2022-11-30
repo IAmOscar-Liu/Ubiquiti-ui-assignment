@@ -7,6 +7,6 @@ export const sendRefreshToken = (res: Response, refresh_token: string) => {
     maxAge: MAX_AGE,
     httpOnly: true,
     path: "/",
-    secure: process.env.NODE_ENV === "PRODUCTION",
+    secure: process.env.NODE_ENV === "production",
   });
 };

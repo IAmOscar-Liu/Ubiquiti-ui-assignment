@@ -13,6 +13,7 @@ export interface Task {
   completed: boolean;
   deadline: number;
   createdBy: number;
+  createdByUsername?: string;
   createdAt?: any;
   updateAt?: any;
   subTasks?: SubTask[];
@@ -38,6 +39,7 @@ export interface Food {
   protein: number;
   img?: string;
   createdBy: number;
+  createdByUsername?: string;
   createdAt?: any;
   updateAt?: any;
 }
