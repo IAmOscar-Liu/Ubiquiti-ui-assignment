@@ -32,6 +32,15 @@ export class FoodController implements FoodControllerInterface {
   async addFood(req: Request, res: Response) {
     const { name, carbs, fats, protein, img, createdBy } = req.body;
 
+    if (
+      !name ||
+      carbs === undefined ||
+      fats === undefined ||
+      protein === undefined ||
+      createdBy === undefined
+    )
+      return res.status(400).json({ ok: false, errMessage: "Invalid input" });
+
     try {
       const task_id = await FoodModal.instance.addFood(
         name + "",

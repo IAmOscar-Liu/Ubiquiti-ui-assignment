@@ -33,6 +33,15 @@ export class TaskController implements TaskControllerInterface {
     const { name, description, price, deadline, createdBy, subTasks } =
       req.body;
 
+    if (
+      !name ||
+      !description ||
+      price === undefined ||
+      deadline === undefined ||
+      createdBy === undefined
+    )
+      return res.status(400).json({ ok: false, errMessage: "Invalid input" });
+
     try {
       const task_id = await TaskModal.instance.addTask(
         name + "",

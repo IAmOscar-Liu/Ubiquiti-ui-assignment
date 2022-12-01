@@ -4,6 +4,7 @@ import { TaskInterface } from "./TaskInterface";
 import { Task as TaskType, SubTask as SubTaskType } from "../../types";
 import { arrangeSubTask } from "../../utils/arrangeSubTask";
 import { ResultSetHeader } from "mysql2";
+import { calcTaskTotalPrice } from "../../utils/calcTaskTotalPrice";
 
 export class TaskModal implements TaskInterface {
   static instance: TaskModal = new TaskModal();
@@ -40,6 +41,8 @@ export class TaskModal implements TaskInterface {
       r.subTasks = allSubTasks.filter((s) => s.rootTask === r.id);
       if (r.subTasks && r.subTasks.length > 0)
         r.subTasks = arrangeSubTask(r.subTasks);
+    
+      r.taskTotalPrice = calcTaskTotalPrice(r);
     });
 
     return results;
@@ -78,6 +81,7 @@ export class TaskModal implements TaskInterface {
     if (result.subTasks && result.subTasks.length > 0)
       result.subTasks = arrangeSubTask(result.subTasks);
 
+    result.taskTotalPrice = calcTaskTotalPrice(result);  
     return result;
   }
 

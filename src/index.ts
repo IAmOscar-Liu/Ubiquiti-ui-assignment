@@ -10,7 +10,18 @@ import { isAuth } from "./utils/isAuth";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? [
+            process.env.CORS_ORIGIN,
+            process.env.CORS_ORIGIN.split("://").join("://www."),
+          ]
+        : process.env.CORS_ORIGIN,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -42,6 +53,6 @@ app.post("/api/food", isAuth, FoodController.instance.addFood);
 app.put("/api/food", isAuth, FoodController.instance.updateFood);
 app.delete("/api/food", isAuth, FoodController.instance.deleteFood);
 
-app.listen(process.env.PORT, () =>
-  console.log(`Server is running on port ${process.env.PORT}`)
+app.listen(process.env.SERVER_PORT, () =>
+  console.log(`Server is running on port ${process.env.SERVER_PORT}`)
 );

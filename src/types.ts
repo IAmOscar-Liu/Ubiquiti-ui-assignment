@@ -17,7 +17,7 @@ export interface Task {
   createdAt?: any;
   updateAt?: any;
   subTasks?: SubTask[];
-  subTaskTotal?: number;
+  taskTotalPrice?: number;
 }
 
 export interface SubTask {

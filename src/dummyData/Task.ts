@@ -54,7 +54,7 @@ export const tasks: TaskType[] = [
         childrenTotal: 40,
       },
     ],
-    subTaskTotal: 120,
+    taskTotalPrice: 120,
   },
   {
     id: 2,
