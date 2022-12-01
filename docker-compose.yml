@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  ubiquiti-assignment-server:
+    build:
+      context: .
+      target: BUILD_OPTIMIZED_SERVER
+      network: mysql-tipo_default
+    image: karta0989006/ubiquiti-assignment-server
+    ports:
+      - 5000:5000
+    networks:
+      - mysql-tipo_default
+    # command: ["npm", "run", "dev"] 
+    command: ["node", "dist/index.js"]
+
+
+networks:
+  mysql-tipo_default:
+    external:
+      name: mysql-tipo_default

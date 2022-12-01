@@ -10,6 +10,7 @@ declare global {
       DATABASE_NAME: string;
       DATABASE_PORT: string;
       CORS_ORIGIN: string;
+      NODE_ENV: string;
     }
   }
 }

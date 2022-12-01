@@ -53,6 +53,15 @@ app.post("/api/food", isAuth, FoodController.instance.addFood);
 app.put("/api/food", isAuth, FoodController.instance.updateFood);
 app.delete("/api/food", isAuth, FoodController.instance.deleteFood);
 
+// Handle production
+if (process.env.NODE_ENV === "production") {
+  // Set static folder
+  app.use(express.static(__dirname + "/public/"));
+
+  // Handle SPA
+  app.get(/.*/, (_, res) => res.sendFile(__dirname + "/public/index.html"));
+}
+
 app.listen(process.env.SERVER_PORT, () =>
   console.log(`Server is running on port ${process.env.SERVER_PORT}`)
 );
