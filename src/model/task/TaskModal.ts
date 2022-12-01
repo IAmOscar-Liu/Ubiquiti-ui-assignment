@@ -1,5 +1,5 @@
 import { modifyTask } from "../../utils/modifyTask";
-import { pool } from "../../utils/getDBPool";
+import DB from "../../utils/db";
 import { TaskInterface } from "./TaskInterface";
 import { Task as TaskType, SubTask as SubTaskType } from "../../types";
 import { arrangeSubTask } from "../../utils/arrangeSubTask";
@@ -10,6 +10,7 @@ export class TaskModal implements TaskInterface {
   static instance: TaskModal = new TaskModal();
 
   async findAllTasks() {
+    const pool = DB.getPool();
     const [rows] = await pool.query(
       `
         SELECT 
@@ -41,7 +42,7 @@ export class TaskModal implements TaskInterface {
       r.subTasks = allSubTasks.filter((s) => s.rootTask === r.id);
       if (r.subTasks && r.subTasks.length > 0)
         r.subTasks = arrangeSubTask(r.subTasks);
-    
+
       r.taskTotalPrice = calcTaskTotalPrice(r);
     });
 
@@ -49,6 +50,7 @@ export class TaskModal implements TaskInterface {
   }
 
   async findTaskById(id: number) {
+    const pool = DB.getPool();
     const [rows] = await pool.execute(
       `
         SELECT 
@@ -81,11 +83,12 @@ export class TaskModal implements TaskInterface {
     if (result.subTasks && result.subTasks.length > 0)
       result.subTasks = arrangeSubTask(result.subTasks);
 
-    result.taskTotalPrice = calcTaskTotalPrice(result);  
+    result.taskTotalPrice = calcTaskTotalPrice(result);
     return result;
   }
 
   async findAllSubTasks(ids: number[]) {
+    const pool = DB.getPool();
     const [rows] = await pool.query(`
       SELECT
           id,
@@ -108,6 +111,7 @@ export class TaskModal implements TaskInterface {
     deadline: number,
     createdBy: number
   ) {
+    const pool = DB.getPool();
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 
@@ -138,6 +142,7 @@ export class TaskModal implements TaskInterface {
     description: string,
     price: number
   ) {
+    const pool = DB.getPool();
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 
@@ -186,6 +191,7 @@ export class TaskModal implements TaskInterface {
       },
     ].filter(({ value }) => value !== undefined);
 
+    const pool = DB.getPool();
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 
@@ -223,6 +229,7 @@ export class TaskModal implements TaskInterface {
       { key: "price", value: price },
     ].filter(({ value }) => value !== undefined);
 
+    const pool = DB.getPool();
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 
@@ -248,6 +255,7 @@ export class TaskModal implements TaskInterface {
   }
 
   async deleteTask(id: number) {
+    const pool = DB.getPool();
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 
@@ -274,6 +282,7 @@ export class TaskModal implements TaskInterface {
   }
 
   async deleteSubTask(id: number) {
+    const pool = DB.getPool();
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 

@@ -7,8 +7,11 @@ import { FoodController } from "./controller/food/FoodController";
 import { TaskController } from "./controller/task/TaskController";
 import { handleRefreshToken } from "./utils/handleRefreshToken";
 import { isAuth } from "./utils/isAuth";
+import DB from "./utils/db";
 
 const app = express();
+
+DB.createPool();
 
 app.use(
   cors({

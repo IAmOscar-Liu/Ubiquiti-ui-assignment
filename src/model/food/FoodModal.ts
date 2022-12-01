@@ -1,12 +1,13 @@
 import { ResultSetHeader } from "mysql2";
 import { Food as FoodType } from "../../types";
-import { pool } from "../../utils/getDBPool";
+import DB from "../../utils/db";
 import { FoodInterface } from "./FoodInterface";
 
 export class FoodModal implements FoodInterface {
   static instance: FoodModal = new FoodModal();
 
   async findAllFoods() {
+    const pool = DB.getPool();
     const [rows] = await pool.query(
       `
         SELECT 
@@ -32,6 +33,7 @@ export class FoodModal implements FoodInterface {
   }
 
   async findFoodById(id: number) {
+    const pool = DB.getPool();
     const [rows] = await pool.execute(
       `
         SELECT 
@@ -66,6 +68,7 @@ export class FoodModal implements FoodInterface {
     img: string | undefined,
     createdBy: number
   ) {
+    const pool = DB.getPool();
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 
@@ -117,6 +120,7 @@ export class FoodModal implements FoodInterface {
       },
     ].filter(({ value }) => value !== undefined);
 
+    const pool = DB.getPool();
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 
@@ -142,6 +146,7 @@ export class FoodModal implements FoodInterface {
   }
 
   async deleteFood(id: number) {
+    const pool = DB.getPool();
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 

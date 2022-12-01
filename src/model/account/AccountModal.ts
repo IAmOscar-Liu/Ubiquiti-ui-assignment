@@ -1,11 +1,12 @@
-import { pool } from "../../utils/getDBPool";
 import { AccountInterface } from "./AccountInterface";
 import { Account as AccountType } from "../../types";
+import DB from "../../utils/db";
 
 export class AccountModal implements AccountInterface {
   static instance: AccountModal = new AccountModal();
 
   async findUserByEmail(email: string) {
+    const pool = DB.getPool();
     const [rows] = await pool.execute(
       `SELECT id, name, email, password FROM Account WHERE email = ?`,
       [email]
@@ -15,6 +16,7 @@ export class AccountModal implements AccountInterface {
   }
 
   async findUserById(id: number) {
+    const pool = DB.getPool();
     const [rows] = await pool.execute(
       `SELECT id, name, email FROM Account WHERE id = ?`,
       [id + ""]
@@ -24,6 +26,7 @@ export class AccountModal implements AccountInterface {
   }
 
   async addUser(name: string, hashedPassword: string, email: string) {
+    const pool = DB.getPool();
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 
