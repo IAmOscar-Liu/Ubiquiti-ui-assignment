@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import { TaskModal } from "../../model/task/TaskModal";
 import { TaskControllerInterface } from "./TaskControllerInterface";
+import mysql from "mysql2/promise";
 
 export class TaskController implements TaskControllerInterface {
   static instance: TaskController = new TaskController();
 
-  async getAllTasks(_: Request, res: Response) {
+  async getAllTasks(_: Request, res: Response, pool: mysql.Pool) {
     try {
-      const tasks = await TaskModal.instance.findAllTasks();
+      const tasks = await TaskModal.instance.findAllTasks(pool);
 
       return res.json({ tasks });
     } catch (error) {
@@ -15,13 +16,15 @@ export class TaskController implements TaskControllerInterface {
     }
   }
 
-  async getTask(req: Request, res: Response) {
+  async getTask(req: Request, res: Response, pool: mysql.Pool) {
     const { id } = req.params;
     if (id === undefined)
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      const task = await TaskModal.instance.findTaskById(Number(id));
+      const task = await TaskModal.instance.findTaskById(pool, {
+        id: Number(id),
+      });
 
       return res.json({ task });
     } catch (error) {
@@ -29,7 +32,7 @@ export class TaskController implements TaskControllerInterface {
     }
   }
 
-  async addTask(req: Request, res: Response) {
+  async addTask(req: Request, res: Response, pool: mysql.Pool) {
     const { name, description, price, deadline, createdBy, subTasks } =
       req.body;
 
@@ -43,13 +46,13 @@ export class TaskController implements TaskControllerInterface {
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      const task_id = await TaskModal.instance.addTask(
-        name + "",
-        description + "",
-        Number(price),
-        Number(deadline),
-        Number(createdBy)
-      );
+      const task_id = await TaskModal.instance.addTask(pool, {
+        name: name + "",
+        description: description + "",
+        price: Number(price),
+        deadline: Number(deadline),
+        createdBy: Number(createdBy),
+      });
 
       if (subTasks && Array.isArray(subTasks) && subTasks.length > 0) {
         for (let subTask of subTasks) {
@@ -60,13 +63,13 @@ export class TaskController implements TaskControllerInterface {
           )
             continue;
 
-          await TaskModal.instance.addSubTask(
-            task_id,
-            "task:" + task_id,
-            subTask.name + "",
-            subTask.description + "",
-            Number(subTask.price)
-          );
+          await TaskModal.instance.addSubTask(pool, {
+            rootTask: task_id,
+            subTaskPath: "task:" + task_id,
+            name: subTask.name + "",
+            description: subTask.description + "",
+            price: Number(subTask.price),
+          });
         }
       }
 
@@ -76,7 +79,7 @@ export class TaskController implements TaskControllerInterface {
     }
   }
 
-  async addSubTask(req: Request, res: Response) {
+  async addSubTask(req: Request, res: Response, pool: mysql.Pool) {
     const { rootTask, subTaskPath, name, description, price } = req.body;
     if (
       !rootTask ||
@@ -88,13 +91,13 @@ export class TaskController implements TaskControllerInterface {
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      const subTask_id = await TaskModal.instance.addSubTask(
-        Number(rootTask),
-        subTaskPath + "",
-        name + "",
-        description + "",
-        Number(price)
-      );
+      const subTask_id = await TaskModal.instance.addSubTask(pool, {
+        rootTask: Number(rootTask),
+        subTaskPath: subTaskPath + "",
+        name: name + "",
+        description: description + "",
+        price: Number(price),
+      });
 
       return res.json({ ok: true, id: subTask_id });
     } catch (error) {
@@ -102,7 +105,7 @@ export class TaskController implements TaskControllerInterface {
     }
   }
 
-  async updateTask(req: Request, res: Response) {
+  async updateTask(req: Request, res: Response, pool: mysql.Pool) {
     const { id, name, description, price, deadline, completed } = req.body;
     if (id === undefined)
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
@@ -114,14 +117,14 @@ export class TaskController implements TaskControllerInterface {
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      await TaskModal.instance.updateTask(
-        Number(id),
-        name === undefined ? undefined : name + "",
-        description === undefined ? undefined : description + "",
-        price === undefined ? undefined : Number(price),
-        deadline === undefined ? undefined : Number(deadline),
-        completed === undefined ? undefined : Boolean(completed)
-      );
+      await TaskModal.instance.updateTask(pool, {
+        id: Number(id),
+        name: name === undefined ? undefined : name + "",
+        description: description === undefined ? undefined : description + "",
+        price: price === undefined ? undefined : Number(price),
+        deadline: deadline === undefined ? undefined : Number(deadline),
+        completed: completed === undefined ? undefined : Boolean(completed),
+      });
 
       return res.json({ ok: true, id: Number(id) });
     } catch (error) {
@@ -129,7 +132,7 @@ export class TaskController implements TaskControllerInterface {
     }
   }
 
-  async updateSubTask(req: Request, res: Response) {
+  async updateSubTask(req: Request, res: Response, pool: mysql.Pool) {
     const { id, name, description, price } = req.body;
     if (id === undefined)
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
@@ -137,12 +140,12 @@ export class TaskController implements TaskControllerInterface {
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      await TaskModal.instance.updateSubTask(
-        Number(id),
-        name === undefined ? undefined : name + "",
-        description === undefined ? undefined : description + "",
-        price === undefined ? undefined : Number(price)
-      );
+      await TaskModal.instance.updateSubTask(pool, {
+        id: Number(id),
+        name: name === undefined ? undefined : name + "",
+        description: description === undefined ? undefined : description + "",
+        price: price === undefined ? undefined : Number(price),
+      });
 
       return res.json({ ok: true, id: Number(id) });
     } catch (error) {
@@ -150,13 +153,13 @@ export class TaskController implements TaskControllerInterface {
     }
   }
 
-  async deleteTask(req: Request, res: Response) {
+  async deleteTask(req: Request, res: Response, pool: mysql.Pool) {
     const { id } = req.body;
     if (id === undefined)
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      await TaskModal.instance.deleteTask(Number(id));
+      await TaskModal.instance.deleteTask(pool, { id: Number(id) });
 
       return res.json({ ok: true, id: Number(id) });
     } catch (error) {
@@ -164,13 +167,13 @@ export class TaskController implements TaskControllerInterface {
     }
   }
 
-  async deleteSubTask(req: Request, res: Response) {
+  async deleteSubTask(req: Request, res: Response, pool: mysql.Pool) {
     const { id } = req.body;
     if (id === undefined)
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      await TaskModal.instance.deleteSubTask(Number(id));
+      await TaskModal.instance.deleteSubTask(pool, { id: Number(id) });
 
       return res.json({ ok: true, id: Number(id) });
     } catch (error) {

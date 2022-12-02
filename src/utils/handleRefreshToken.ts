@@ -1,10 +1,14 @@
 import { Request, Response } from "express";
 import { verify } from "jsonwebtoken";
 import { createTokens } from "./createTokens";
-import DB from "./db";
+import mysql from "mysql2/promise";
 import { sendRefreshToken } from "./sendRefreshToken";
 
-export const handleRefreshToken = async (req: Request, res: Response) => {
+export const handleRefreshToken = async (
+  req: Request,
+  res: Response,
+  pool: mysql.Pool
+) => {
   const refresh_token = req.cookies["todoapp_refresh_token"];
 
   if (!refresh_token) {
@@ -36,7 +40,6 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
   }
 
   // find user by userId stored in token
-  const pool = DB.getPool();
   const [userRows] = await pool.execute(`SELECT id FROM Account WHERE id = ?`, [
     account_id_from_cookie,
   ]);

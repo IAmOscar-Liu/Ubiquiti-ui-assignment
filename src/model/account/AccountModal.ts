@@ -1,12 +1,11 @@
 import { AccountInterface } from "./AccountInterface";
 import { Account as AccountType } from "../../types";
-import DB from "../../utils/db";
+import mysql from "mysql2/promise";
 
 export class AccountModal implements AccountInterface {
   static instance: AccountModal = new AccountModal();
 
-  async findUserByEmail(email: string) {
-    const pool = DB.getPool();
+  async findUserByEmail(pool: mysql.Pool, { email }: { email: string }) {
     const [rows] = await pool.execute(
       `SELECT id, name, email, password FROM Account WHERE email = ?`,
       [email]
@@ -15,8 +14,7 @@ export class AccountModal implements AccountInterface {
     return (rows as AccountType[])[0] || null;
   }
 
-  async findUserById(id: number) {
-    const pool = DB.getPool();
+  async findUserById(pool: mysql.Pool, { id }: { id: number }) {
     const [rows] = await pool.execute(
       `SELECT id, name, email FROM Account WHERE id = ?`,
       [id + ""]
@@ -25,8 +23,14 @@ export class AccountModal implements AccountInterface {
     return (rows as AccountType[])[0] || null;
   }
 
-  async addUser(name: string, hashedPassword: string, email: string) {
-    const pool = DB.getPool();
+  async addUser(
+    pool: mysql.Pool,
+    {
+      name,
+      password: hashedPassword,
+      email,
+    }: { name: string; password: string; email: string }
+  ) {
     const poolTransaction = await pool.getConnection();
     await poolTransaction.beginTransaction();
 

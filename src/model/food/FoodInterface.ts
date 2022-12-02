@@ -1,33 +1,39 @@
 import { Food as FoodType } from "../../types";
+import mysql from "mysql2/promise";
 
 export interface FoodInterface {
-  findAllFoods: () => Promise<FoodType[]>;
+  findAllFoods: (pool: mysql.Pool) => Promise<FoodType[]>;
 
-  findFoodById: (id: number) => Promise<FoodType | null>;
-
-  //   name: string;
-  //   carbs: number;
-  //   fats: number;
-  //   protein: number;
-  //   img?: string;
+  findFoodById: (
+    pool: mysql.Pool,
+    data: {
+      id: number;
+    }
+  ) => Promise<FoodType | null>;
 
   addFood: (
-    name: string,
-    carbs: number,
-    fats: number,
-    protein: number,
-    img: string | undefined,
-    createdBy: number
+    pool: mysql.Pool,
+    data: {
+      name: string;
+      carbs: number;
+      fats: number;
+      protein: number;
+      img: string | undefined;
+      createdBy: number;
+    }
   ) => Promise<number>;
 
   updateFood: (
-    id: number,
-    name: string | undefined,
-    carbs: number | undefined,
-    fats: number | undefined,
-    protein: number | undefined,
-    img: string | undefined
+    pool: mysql.Pool,
+    data: {
+      id: number;
+      name: string | undefined;
+      carbs: number | undefined;
+      fats: number | undefined;
+      protein: number | undefined;
+      img: string | undefined;
+    }
   ) => Promise<number>;
 
-  deleteFood: (id: number) => Promise<number>;
+  deleteFood: (pool: mysql.Pool, data: { id: number }) => Promise<number>;
 }

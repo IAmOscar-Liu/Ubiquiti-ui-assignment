@@ -7,11 +7,20 @@ import { FoodController } from "./controller/food/FoodController";
 import { TaskController } from "./controller/task/TaskController";
 import { handleRefreshToken } from "./utils/handleRefreshToken";
 import { isAuth } from "./utils/isAuth";
-import DB from "./utils/db";
+import mysql from "mysql2/promise";
+
+const pool = mysql.createPool({
+  host: process.env.DATABASE_HOST,
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_NAME,
+  port: Number(process.env.DATABASE_PORT || 3306),
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
 const app = express();
-
-DB.createPool();
 
 app.use(
   cors({
@@ -29,32 +38,41 @@ app.use(express.json());
 app.use(cookieParser());
 
 // refresh token
-app.post("/api/refresh_token", handleRefreshToken);
+app.post("/api/refresh_token", (req, res) =>
+  handleRefreshToken(req, res, pool)
+);
 
 // auth
-app.post("/api/auth/login", AccountController.instance.login);
-app.post("/api/auth/register", AccountController.instance.register);
-app.post("/api/auth/logout", AccountController.instance.logout);
-app.post("/api/auth/me", AccountController.instance.me);
+const account = AccountController.instance;
+app.post("/api/auth/login", (req, res) => account.login(req, res, pool));
+app.post("/api/auth/register", (req, res) => account.register(req, res, pool));
+app.post("/api/auth/logout", (req, res) => account.logout(req, res, pool));
+app.post("/api/auth/me", (req, res) => account.me(req, res, pool));
 
 // task
-app.get("/api/tasks", TaskController.instance.getAllTasks);
-app.get("/api/task/:id", TaskController.instance.getTask);
-app.post("/api/task", isAuth, TaskController.instance.addTask);
-app.put("/api/task", isAuth, TaskController.instance.updateTask);
-app.delete("/api/task", isAuth, TaskController.instance.deleteTask);
+const task = TaskController.instance;
+app.get("/api/tasks", (req, res) => task.getAllTasks(req, res, pool));
+app.get("/api/task/:id", (req, res) => task.getTask(req, res, pool));
+app.post("/api/task", isAuth, (req, res) => task.addTask(req, res, pool));
+app.put("/api/task", isAuth, (req, res) => task.updateTask(req, res, pool));
+app.delete("/api/task", isAuth, (req, res) => task.deleteTask(req, res, pool));
 
 // subtask
-app.post("/api/subtask", isAuth, TaskController.instance.addSubTask);
-app.put("/api/subtask", isAuth, TaskController.instance.updateSubTask);
-app.delete("/api/subtask", isAuth, TaskController.instance.deleteSubTask);
+app.post("/api/subtask", isAuth, (req, res) => task.addSubTask(req, res, pool));
+app.put("/api/subtask", isAuth, (req, res) =>
+  task.updateSubTask(req, res, pool)
+);
+app.delete("/api/subtask", isAuth, (req, res) =>
+  task.deleteSubTask(req, res, pool)
+);
 
 // food
-app.get("/api/foods", FoodController.instance.getAllFoods);
-app.get("/api/food/:id", FoodController.instance.getFood);
-app.post("/api/food", isAuth, FoodController.instance.addFood);
-app.put("/api/food", isAuth, FoodController.instance.updateFood);
-app.delete("/api/food", isAuth, FoodController.instance.deleteFood);
+const food = FoodController.instance;
+app.get("/api/foods", (req, res) => food.getAllFoods(req, res, pool));
+app.get("/api/food/:id", (req, res) => food.getFood(req, res, pool));
+app.post("/api/food", isAuth, (req, res) => food.addFood(req, res, pool));
+app.put("/api/food", isAuth, (req, res) => food.updateFood(req, res, pool));
+app.delete("/api/food", isAuth, (req, res) => food.deleteFood(req, res, pool));
 
 // Handle production
 if (process.env.NODE_ENV === "production") {
