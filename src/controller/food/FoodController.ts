@@ -1,14 +1,13 @@
 import { Request, Response } from "express";
 import { FoodModal } from "../../model/food/FoodModal";
 import { FoodControllerInterface } from "./FoodControllerInterface";
-import mysql from "mysql2/promise";
 
 export class FoodController implements FoodControllerInterface {
   static instance: FoodController = new FoodController();
 
-  async getAllFoods(_: Request, res: Response, pool: mysql.Pool) {
+  async getAllFoods(_: Request, res: Response) {
     try {
-      const foods = await FoodModal.instance.findAllFoods(pool);
+      const foods = await FoodModal.instance.findAllFoods();
 
       return res.json({ foods });
     } catch (error) {
@@ -16,13 +15,13 @@ export class FoodController implements FoodControllerInterface {
     }
   }
 
-  async getFood(req: Request, res: Response, pool: mysql.Pool) {
+  async getFood(req: Request, res: Response) {
     const { id } = req.params;
     if (id === undefined)
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      const food = await FoodModal.instance.findFoodById(pool, {
+      const food = await FoodModal.instance.findFoodById({
         id: Number(id),
       });
 
@@ -32,7 +31,7 @@ export class FoodController implements FoodControllerInterface {
     }
   }
 
-  async addFood(req: Request, res: Response, pool: mysql.Pool) {
+  async addFood(req: Request, res: Response) {
     const { name, carbs, fats, protein, img, createdBy } = req.body;
 
     if (
@@ -45,7 +44,7 @@ export class FoodController implements FoodControllerInterface {
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      const task_id = await FoodModal.instance.addFood(pool, {
+      const task_id = await FoodModal.instance.addFood({
         name: name + "",
         carbs: Number(carbs),
         fats: Number(fats),
@@ -60,7 +59,7 @@ export class FoodController implements FoodControllerInterface {
     }
   }
 
-  async updateFood(req: Request, res: Response, pool: mysql.Pool) {
+  async updateFood(req: Request, res: Response) {
     const { id, name, carbs, fats, protein, img } = req.body;
     if (id === undefined)
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
@@ -68,7 +67,7 @@ export class FoodController implements FoodControllerInterface {
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      await FoodModal.instance.updateFood(pool, {
+      await FoodModal.instance.updateFood({
         id: Number(id),
         name: name === undefined ? undefined : name + "",
         carbs: carbs === undefined ? undefined : Number(carbs),
@@ -83,13 +82,13 @@ export class FoodController implements FoodControllerInterface {
     }
   }
 
-  async deleteFood(req: Request, res: Response, pool: mysql.Pool) {
+  async deleteFood(req: Request, res: Response) {
     const { id } = req.body;
     if (id === undefined)
       return res.status(400).json({ ok: false, errMessage: "Invalid input" });
 
     try {
-      await FoodModal.instance.deleteFood(pool, { id: Number(id) });
+      await FoodModal.instance.deleteFood({ id: Number(id) });
 
       return res.json({ ok: true, id: Number(id) });
     } catch (error) {

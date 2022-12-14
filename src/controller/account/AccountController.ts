@@ -5,19 +5,18 @@ import { AccountModal } from "../../model/account/AccountModal";
 import { createTokens } from "../../utils/createTokens";
 import { sendRefreshToken } from "../../utils/sendRefreshToken";
 import { AccountControllerInterface } from "./AccountControllerInterface";
-import mysql from "mysql2/promise";
 
 export class AccountController implements AccountControllerInterface {
   static instance: AccountController = new AccountController();
 
-  async login(req: Request, res: Response, pool: mysql.Pool) {
+  async login(req: Request, res: Response) {
     const { email, password } = req.body;
     if (!email || !password)
       return res.status(400).json({ ok: false, errorMsg: "Invalid input" });
 
     // handle database
     try {
-      const account = await AccountModal.instance.findUserByEmail(pool, {
+      const account = await AccountModal.instance.findUserByEmail({
         email: email + "",
       });
       if (!account)
@@ -45,7 +44,7 @@ export class AccountController implements AccountControllerInterface {
     }
   }
 
-  async register(req: Request, res: Response, pool: mysql.Pool) {
+  async register(req: Request, res: Response) {
     const { name, email, password } = req.body;
     if (!name || !email || !password)
       return res.status(400).json({ ok: false, errorMsg: "Invalid input" });
@@ -53,7 +52,7 @@ export class AccountController implements AccountControllerInterface {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     try {
-      const account = await AccountModal.instance.addUser(pool, {
+      const account = await AccountModal.instance.addUser({
         name: name + "",
         password: hashedPassword,
         email: email + "",
@@ -73,13 +72,13 @@ export class AccountController implements AccountControllerInterface {
     }
   }
 
-  logout(_: Request, res: Response, __: mysql.Pool) {
+  logout(_: Request, res: Response) {
     res.clearCookie("todoapp_refresh_token");
 
     return res.json({ ok: true });
   }
 
-  async me(req: Request, res: Response, pool: mysql.Pool) {
+  async me(req: Request, res: Response) {
     try {
       const { account_id, access_token } = getAccessTokenFromAuth(
         req.headers["authorization"]
@@ -88,7 +87,7 @@ export class AccountController implements AccountControllerInterface {
       if (account_id === undefined || access_token === undefined)
         return res.json({});
 
-      const account = await AccountModal.instance.findUserById(pool, {
+      const account = await AccountModal.instance.findUserById({
         id: account_id,
       });
 

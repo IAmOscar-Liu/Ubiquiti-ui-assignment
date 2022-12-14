@@ -6,8 +6,14 @@ import { FoodInterface } from "./FoodInterface";
 export class FoodModal implements FoodInterface {
   static instance: FoodModal = new FoodModal();
 
-  async findAllFoods(pool: mysql.Pool) {
-    const [rows] = await pool.query(
+  private pool: mysql.Pool;
+
+  static initPool(pool: mysql.Pool) {
+    FoodModal.instance.pool = pool;
+  }
+
+  async findAllFoods() {
+    const [rows] = await this.pool.query(
       `
         SELECT 
             f.id,
@@ -31,8 +37,8 @@ export class FoodModal implements FoodInterface {
     return rows as FoodType[];
   }
 
-  async findFoodById(pool: mysql.Pool, { id }: { id: number }) {
-    const [rows] = await pool.execute(
+  async findFoodById({ id }: { id: number }) {
+    const [rows] = await this.pool.execute(
       `
         SELECT 
             f.id,
@@ -58,25 +64,22 @@ export class FoodModal implements FoodInterface {
     return food || null;
   }
 
-  async addFood(
-    pool: mysql.Pool,
-    {
-      name,
-      carbs,
-      fats,
-      protein,
-      img,
-      createdBy,
-    }: {
-      name: string;
-      carbs: number;
-      fats: number;
-      protein: number;
-      img: string | undefined;
-      createdBy: number;
-    }
-  ) {
-    const poolTransaction = await pool.getConnection();
+  async addFood({
+    name,
+    carbs,
+    fats,
+    protein,
+    img,
+    createdBy,
+  }: {
+    name: string;
+    carbs: number;
+    fats: number;
+    protein: number;
+    img: string | undefined;
+    createdBy: number;
+  }) {
+    const poolTransaction = await this.pool.getConnection();
     await poolTransaction.beginTransaction();
 
     try {
@@ -106,24 +109,21 @@ export class FoodModal implements FoodInterface {
     }
   }
 
-  async updateFood(
-    pool: mysql.Pool,
-    {
-      id,
-      name,
-      carbs,
-      fats,
-      protein,
-      img,
-    }: {
-      id: number;
-      name: string | undefined;
-      carbs: number | undefined;
-      fats: number | undefined;
-      protein: number | undefined;
-      img: string | undefined;
-    }
-  ) {
+  async updateFood({
+    id,
+    name,
+    carbs,
+    fats,
+    protein,
+    img,
+  }: {
+    id: number;
+    name: string | undefined;
+    carbs: number | undefined;
+    fats: number | undefined;
+    protein: number | undefined;
+    img: string | undefined;
+  }) {
     if ([name, carbs, fats, protein, img].every((up) => up === undefined))
       return id;
     const updateArr = [
@@ -137,7 +137,7 @@ export class FoodModal implements FoodInterface {
       },
     ].filter(({ value }) => value !== undefined);
 
-    const poolTransaction = await pool.getConnection();
+    const poolTransaction = await this.pool.getConnection();
     await poolTransaction.beginTransaction();
 
     try {
@@ -161,8 +161,8 @@ export class FoodModal implements FoodInterface {
     }
   }
 
-  async deleteFood(pool: mysql.Pool, { id }: { id: number }) {
-    const poolTransaction = await pool.getConnection();
+  async deleteFood({ id }: { id: number }) {
+    const poolTransaction = await this.pool.getConnection();
     await poolTransaction.beginTransaction();
 
     try {

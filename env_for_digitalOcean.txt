@@ -8,3 +8,4 @@ DATABASE_NAME=todoapp
 DATABASE_PORT=3306
 CORS_ORIGIN=https://tipodb.com
 NODE_ENV=production
+

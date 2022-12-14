@@ -5,8 +5,14 @@ import mysql from "mysql2/promise";
 export class AccountModal implements AccountInterface {
   static instance: AccountModal = new AccountModal();
 
-  async findUserByEmail(pool: mysql.Pool, { email }: { email: string }) {
-    const [rows] = await pool.execute(
+  private pool: mysql.Pool;
+
+  static initPool(pool: mysql.Pool) {
+    AccountModal.instance.pool = pool;
+  }
+
+  async findUserByEmail({ email }: { email: string }) {
+    const [rows] = await this.pool.execute(
       `SELECT id, name, email, password FROM Account WHERE email = ?`,
       [email]
     );
@@ -14,8 +20,8 @@ export class AccountModal implements AccountInterface {
     return (rows as AccountType[])[0] || null;
   }
 
-  async findUserById(pool: mysql.Pool, { id }: { id: number }) {
-    const [rows] = await pool.execute(
+  async findUserById({ id }: { id: number }) {
+    const [rows] = await this.pool.execute(
       `SELECT id, name, email FROM Account WHERE id = ?`,
       [id + ""]
     );
@@ -23,15 +29,16 @@ export class AccountModal implements AccountInterface {
     return (rows as AccountType[])[0] || null;
   }
 
-  async addUser(
-    pool: mysql.Pool,
-    {
-      name,
-      password: hashedPassword,
-      email,
-    }: { name: string; password: string; email: string }
-  ) {
-    const poolTransaction = await pool.getConnection();
+  async addUser({
+    name,
+    password: hashedPassword,
+    email,
+  }: {
+    name: string;
+    password: string;
+    email: string;
+  }) {
+    const poolTransaction = await this.pool.getConnection();
     await poolTransaction.beginTransaction();
 
     try {
@@ -46,7 +53,7 @@ export class AccountModal implements AccountInterface {
 
       await poolTransaction.commit();
 
-      const [rows] = await pool.execute(
+      const [rows] = await this.pool.execute(
         `SELECT id, name, email, password FROM Account WHERE email = ?`,
         [email]
       );

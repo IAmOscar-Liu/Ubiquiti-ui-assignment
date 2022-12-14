@@ -9,8 +9,14 @@ import { calcTaskTotalPrice } from "../../utils/calcTaskTotalPrice";
 export class TaskModal implements TaskInterface {
   static instance: TaskModal = new TaskModal();
 
-  async findAllTasks(pool: mysql.Pool) {
-    const [rows] = await pool.query(
+  private pool: mysql.Pool;
+
+  static initPool(pool: mysql.Pool) {
+    TaskModal.instance.pool = pool;
+  }
+
+  async findAllTasks() {
+    const [rows] = await this.pool.query(
       `
         SELECT 
             t.id,
@@ -33,7 +39,7 @@ export class TaskModal implements TaskInterface {
 
     const results: TaskType[] = (rows as any[]).map((r) => modifyTask(r));
 
-    const allSubTasks = await TaskModal.instance.findAllSubTasks(pool, {
+    const allSubTasks = await TaskModal.instance.findAllSubTasks({
       ids: results.map((r) => r.id),
     });
 
@@ -48,8 +54,8 @@ export class TaskModal implements TaskInterface {
     return results;
   }
 
-  async findTaskById(pool: mysql.Pool, { id }: { id: number }) {
-    const [rows] = await pool.execute(
+  async findTaskById({ id }: { id: number }) {
+    const [rows] = await this.pool.execute(
       `
         SELECT 
             t.id,
@@ -75,7 +81,7 @@ export class TaskModal implements TaskInterface {
     if (!task) return null;
 
     const result = modifyTask(task);
-    const allSubTasks = await TaskModal.instance.findAllSubTasks(pool, {
+    const allSubTasks = await TaskModal.instance.findAllSubTasks({
       ids: [result.id],
     });
     result.subTasks = allSubTasks;
@@ -87,8 +93,8 @@ export class TaskModal implements TaskInterface {
     return result;
   }
 
-  async findAllSubTasks(pool: mysql.Pool, { ids }: { ids: number[] }) {
-    const [rows] = await pool.query(`
+  async findAllSubTasks({ ids }: { ids: number[] }) {
+    const [rows] = await this.pool.query(`
       SELECT
           id,
           rootTask,
@@ -103,23 +109,20 @@ export class TaskModal implements TaskInterface {
     return rows as SubTaskType[];
   }
 
-  async addTask(
-    pool: mysql.Pool,
-    {
-      name,
-      description,
-      price,
-      deadline,
-      createdBy,
-    }: {
-      name: string;
-      description: string;
-      price: number;
-      deadline: number;
-      createdBy: number;
-    }
-  ) {
-    const poolTransaction = await pool.getConnection();
+  async addTask({
+    name,
+    description,
+    price,
+    deadline,
+    createdBy,
+  }: {
+    name: string;
+    description: string;
+    price: number;
+    deadline: number;
+    createdBy: number;
+  }) {
+    const poolTransaction = await this.pool.getConnection();
     await poolTransaction.beginTransaction();
 
     try {
@@ -142,23 +145,20 @@ export class TaskModal implements TaskInterface {
     }
   }
 
-  async addSubTask(
-    pool: mysql.Pool,
-    {
-      rootTask,
-      subTaskPath,
-      name,
-      description,
-      price,
-    }: {
-      rootTask: number;
-      subTaskPath: string;
-      name: string;
-      description: string;
-      price: number;
-    }
-  ) {
-    const poolTransaction = await pool.getConnection();
+  async addSubTask({
+    rootTask,
+    subTaskPath,
+    name,
+    description,
+    price,
+  }: {
+    rootTask: number;
+    subTaskPath: string;
+    name: string;
+    description: string;
+    price: number;
+  }) {
+    const poolTransaction = await this.pool.getConnection();
     await poolTransaction.beginTransaction();
 
     try {
@@ -181,24 +181,21 @@ export class TaskModal implements TaskInterface {
     }
   }
 
-  async updateTask(
-    pool: mysql.Pool,
-    {
-      id,
-      name,
-      description,
-      price,
-      deadline,
-      completed,
-    }: {
-      id: number;
-      name: string | undefined;
-      description: string | undefined;
-      price: number | undefined;
-      deadline: number | undefined;
-      completed: boolean | undefined;
-    }
-  ) {
+  async updateTask({
+    id,
+    name,
+    description,
+    price,
+    deadline,
+    completed,
+  }: {
+    id: number;
+    name: string | undefined;
+    description: string | undefined;
+    price: number | undefined;
+    deadline: number | undefined;
+    completed: boolean | undefined;
+  }) {
     if (
       [name, description, price, deadline, completed].every(
         (up) => up === undefined
@@ -216,7 +213,7 @@ export class TaskModal implements TaskInterface {
       },
     ].filter(({ value }) => value !== undefined);
 
-    const poolTransaction = await pool.getConnection();
+    const poolTransaction = await this.pool.getConnection();
     await poolTransaction.beginTransaction();
 
     try {
@@ -240,20 +237,17 @@ export class TaskModal implements TaskInterface {
     }
   }
 
-  async updateSubTask(
-    pool: mysql.Pool,
-    {
-      id,
-      name,
-      description,
-      price,
-    }: {
-      id: number;
-      name: string | undefined;
-      description: string | undefined;
-      price: number | undefined;
-    }
-  ) {
+  async updateSubTask({
+    id,
+    name,
+    description,
+    price,
+  }: {
+    id: number;
+    name: string | undefined;
+    description: string | undefined;
+    price: number | undefined;
+  }) {
     if ([name, description, price].every((up) => up === undefined)) return id;
     const updateArr = [
       { key: "name", value: name },
@@ -261,7 +255,7 @@ export class TaskModal implements TaskInterface {
       { key: "price", value: price },
     ].filter(({ value }) => value !== undefined);
 
-    const poolTransaction = await pool.getConnection();
+    const poolTransaction = await this.pool.getConnection();
     await poolTransaction.beginTransaction();
 
     try {
@@ -285,8 +279,8 @@ export class TaskModal implements TaskInterface {
     }
   }
 
-  async deleteTask(pool: mysql.Pool, { id }: { id: number }) {
-    const poolTransaction = await pool.getConnection();
+  async deleteTask({ id }: { id: number }) {
+    const poolTransaction = await this.pool.getConnection();
     await poolTransaction.beginTransaction();
 
     try {
@@ -311,8 +305,8 @@ export class TaskModal implements TaskInterface {
     }
   }
 
-  async deleteSubTask(pool: mysql.Pool, { id }: { id: number }) {
-    const poolTransaction = await pool.getConnection();
+  async deleteSubTask({ id }: { id: number }) {
+    const poolTransaction = await this.pool.getConnection();
     await poolTransaction.beginTransaction();
 
     try {
